@@ -88,60 +88,6 @@
   .link-list a:hover { background: var(--bg-secondary); }
   .link-list a i { font-size: 15px; color: var(--text-secondary); flex-shrink: 0; }
 
-  /* Timeblock */
-  .tb-card {
-    background: var(--bg);
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: 16px 18px;
-  }
-
-  .setup-box {
-    background: var(--bg-secondary);
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius-md);
-    padding: 14px 16px;
-    margin-bottom: 14px;
-  }
-  .setup-box p { font-size: 13px; color: var(--text-secondary); margin-bottom: 10px; line-height: 1.5; }
-  .setup-fields { display: flex; flex-direction: column; gap: 7px; }
-  .setup-fields input {
-    font-size: 13px; padding: 7px 11px; width: 100%;
-    border-radius: var(--radius-md); border: 0.5px solid var(--border-hover);
-    background: var(--bg); color: var(--text-primary); outline: none;
-    font-family: inherit;
-  }
-  .setup-fields input:focus { border-color: var(--accent); }
-  .setup-fields button {
-    font-size: 13px; padding: 7px 16px; align-self: flex-start;
-    border-radius: var(--radius-md); border: 0.5px solid var(--border-hover);
-    background: var(--bg); color: var(--text-primary); cursor: pointer;
-    font-family: inherit; transition: background 0.12s;
-    display: flex; align-items: center; gap: 6px;
-  }
-  .setup-fields button:hover { background: var(--bg-secondary); }
-
-  .tb-row {
-    display: flex; align-items: center; gap: 12px;
-    padding: 7px 0; border-bottom: 0.5px solid var(--border);
-  }
-  .tb-row:last-child { border-bottom: none; }
-  .tb-time { font-size: 12px; color: var(--text-tertiary); min-width: 108px; flex-shrink: 0; }
-  .tb-bar-wrap { flex: 1; height: 5px; background: var(--bg-secondary); border-radius: 99px; overflow: hidden; }
-  .tb-bar { height: 100%; border-radius: 99px; width: 0%; transition: width 0.7s ease; background: var(--border-hover); }
-  .tb-bar.active { background: var(--accent); }
-  .tb-bar.done { background: var(--border); }
-  .tb-label { font-size: 13px; color: var(--text-primary); flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .now-pill {
-    font-size: 11px; font-weight: 500; color: var(--accent-text);
-    background: var(--accent-bg); border-radius: 99px;
-    padding: 2px 9px; flex-shrink: 0; display: none;
-  }
-  .tb-status { font-size: 13px; color: var(--text-secondary); padding: 4px 0; }
-  .tb-status.err { color: #c0392b; }
-
-  /* Footer */
-  .footer { margin-top: 2rem; font-size: 12px; color: var(--text-tertiary); text-align: center; }
 </style>
 </head>
 <body>
@@ -211,29 +157,7 @@
 
   </div>
 
-  <!-- Timeblock -->
-  <p class="section-label">Today's timeblock</p>
-  <div class="tb-card">
-    <div class="setup-box" id="setup-box">
-      <p><i class="ti ti-calendar" aria-hidden="true" style="font-size:14px;vertical-align:-2px;margin-right:4px"></i>Connect your Google Calendar to pull in today's events. Your credentials stay in your browser and are never sent anywhere except Google.</p>
-      <div class="setup-fields">
-        <input id="inp-key" type="password" placeholder="Google Calendar API key" autocomplete="off" />
-        <input id="inp-cal" type="text" placeholder="Calendar ID  (e.g. you@gmail.com)" />
-        <button onclick="connectCal()">Connect <i class="ti ti-arrow-right" aria-hidden="true" style="font-size:13px;vertical-align:-1px"></i></button>
-      </div>
-    </div>
-    <div id="tb-rows">
-      <p class="tb-status">Enter your credentials above to load today's events.</p>
-    </div>
-  </div>
-
-  <p class="footer">Your credentials are stored only in this browser tab and sent directly to Google — nothing is logged or shared.</p>
-
-</div>
-
 <script>
-  let calEvents = [];
-
   const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
@@ -244,99 +168,11 @@
     return h + ':' + String(m).padStart(2, '0') + ' ' + ap;
   }
 
-  function fmtShort(d) {
-    let h = d.getHours(), m = d.getMinutes();
-    const ap = h < 12 ? 'am' : 'pm';
-    h = h % 12 || 12;
-    return m === 0 ? h + ap : h + ':' + String(m).padStart(2, '0') + ap;
-  }
-
   function tick() {
     const now = new Date();
     document.getElementById('clk').textContent = fmtClock(now);
     document.getElementById('clk-date').textContent =
       DAYS[now.getDay()] + ', ' + MONTHS[now.getMonth()] + ' ' + now.getDate();
-    updateBars(now);
-  }
-
-  function updateBars(now) {
-    if (!calEvents.length) return;
-    const ms = now.getTime();
-    calEvents.forEach((ev, i) => {
-      const bar = document.getElementById('bar-' + i);
-      const pill = document.getElementById('pill-' + i);
-      if (!bar) return;
-      const active = ms >= ev.start && ms < ev.end;
-      const done = ms >= ev.end;
-      const pct = done ? 100 : active ? Math.round((ms - ev.start) / (ev.end - ev.start) * 100) : 0;
-      bar.style.width = pct + '%';
-      bar.className = 'tb-bar' + (active ? ' active' : done ? ' done' : '');
-      pill.style.display = active ? 'inline' : 'none';
-    });
-  }
-
-  async function connectCal() {
-    const key = document.getElementById('inp-key').value.trim();
-    const cal = document.getElementById('inp-cal').value.trim();
-    if (!key || !cal) return;
-
-    document.getElementById('tb-rows').innerHTML = '<p class="tb-status">Loading events…</p>';
-
-    const now = new Date();
-    const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
-    const dayEnd   = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).toISOString();
-    const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(cal)}/events`
-      + `?key=${encodeURIComponent(key)}&timeMin=${dayStart}&timeMax=${dayEnd}`
-      + `&singleEvents=true&orderBy=startTime&maxResults=50`;
-
-    try {
-      const res = await fetch(url);
-      const data = await res.json();
-
-      if (data.error) {
-        document.getElementById('tb-rows').innerHTML =
-          `<p class="tb-status err"><i class="ti ti-alert-circle" aria-hidden="true" style="font-size:14px;vertical-align:-2px;margin-right:5px"></i>${data.error.message}</p>`;
-        return;
-      }
-
-      const timed = (data.items || []).filter(e => e.start && e.start.dateTime);
-      if (!timed.length) {
-        document.getElementById('tb-rows').innerHTML =
-          '<p class="tb-status">No timed events found for today.</p>';
-        return;
-      }
-
-      calEvents = timed.map(e => ({
-        label: e.summary || '(no title)',
-        start: new Date(e.start.dateTime).getTime(),
-        end:   new Date(e.end.dateTime).getTime(),
-      }));
-
-      document.getElementById('setup-box').style.display = 'none';
-      buildRows();
-      updateBars(new Date());
-
-    } catch (err) {
-      document.getElementById('tb-rows').innerHTML =
-        `<p class="tb-status err"><i class="ti ti-alert-circle" aria-hidden="true" style="font-size:14px;vertical-align:-2px;margin-right:5px"></i>Could not reach Google. Check your API key and calendar ID.</p>`;
-    }
-  }
-
-  function buildRows() {
-    const container = document.getElementById('tb-rows');
-    container.innerHTML = '';
-    calEvents.forEach((ev, i) => {
-      const s = new Date(ev.start), e = new Date(ev.end);
-      const row = document.createElement('div');
-      row.className = 'tb-row';
-      row.innerHTML = `
-        <span class="tb-time">${fmtShort(s)} – ${fmtShort(e)}</span>
-        <div class="tb-bar-wrap"><div class="tb-bar" id="bar-${i}"></div></div>
-        <span class="tb-label">${ev.label}</span>
-        <span class="now-pill" id="pill-${i}">now</span>
-      `;
-      container.appendChild(row);
-    });
   }
 
   tick();
