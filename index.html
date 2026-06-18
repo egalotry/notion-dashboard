@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Home Dashboard</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #ffffff;
+    --bg-secondary: #f7f7f5;
+    --bg-tertiary: #f0efe9;
+    --text-primary: #1a1a18;
+    --text-secondary: #6b6b66;
+    --text-tertiary: #9e9e98;
+    --border: rgba(0,0,0,0.12);
+    --border-hover: rgba(0,0,0,0.25);
+    --accent: #7F77DD;
+    --accent-bg: #EEEDFE;
+    --accent-text: #534AB7;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1e1e1c;
+      --bg-secondary: #282826;
+      --bg-tertiary: #2e2e2c;
+      --text-primary: #f0efe9;
+      --text-secondary: #a0a09a;
+      --text-tertiary: #6b6b66;
+      --border: rgba(255,255,255,0.1);
+      --border-hover: rgba(255,255,255,0.2);
+      --accent: #9F99E8;
+      --accent-bg: #26215C;
+      --accent-text: #CECBF6;
+    }
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    padding: 2rem 1.5rem;
+  }
+
+  .dash { max-width: 900px; margin: 0 auto; }
+
+  /* Clock */
+  .clock-row { display: flex; align-items: baseline; gap: 14px; margin-bottom: 2rem; }
+  .clock-time { font-size: 42px; font-weight: 500; color: var(--text-primary); letter-spacing: -1.5px; line-height: 1; }
+  .clock-date { font-size: 15px; color: var(--text-secondary); }
+
+  /* Section label */
+  .section-label {
+    font-size: 11px; font-weight: 500; color: var(--text-tertiary);
+    text-transform: uppercase; letter-spacing: 0.08em; margin: 1.5rem 0 8px;
+  }
+
+  /* Nav grid */
+  .nav-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+
+  .card {
+    background: var(--bg);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 14px 16px;
+  }
+
+  .card-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .card-header + .card-header { margin-top: 16px; }
+  .card-icon { font-size: 17px; color: var(--text-secondary); }
+  .card-title {
+    font-size: 11px; font-weight: 500; color: var(--text-secondary);
+    text-transform: uppercase; letter-spacing: 0.06em;
+  }
+
+  .link-list { display: flex; flex-direction: column; gap: 2px; }
+  .link-list a {
+    font-size: 14px; color: var(--text-primary); text-decoration: none;
+    padding: 5px 8px; border-radius: var(--radius-md);
+    display: flex; align-items: center; gap: 9px; transition: background 0.12s;
+  }
+  .link-list a:hover { background: var(--bg-secondary); }
+  .link-list a i { font-size: 15px; color: var(--text-secondary); flex-shrink: 0; }
+
+  /* Timeblock */
+  .tb-card {
+    background: var(--bg);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px 18px;
+  }
+
+  .setup-box {
+    background: var(--bg-secondary);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    margin-bottom: 14px;
+  }
+  .setup-box p { font-size: 13px; color: var(--text-secondary); margin-bottom: 10px; line-height: 1.5; }
+  .setup-fields { display: flex; flex-direction: column; gap: 7px; }
+  .setup-fields input {
+    font-size: 13px; padding: 7px 11px; width: 100%;
+    border-radius: var(--radius-md); border: 0.5px solid var(--border-hover);
+    background: var(--bg); color: var(--text-primary); outline: none;
+    font-family: inherit;
+  }
+  .setup-fields input:focus { border-color: var(--accent); }
+  .setup-fields button {
+    font-size: 13px; padding: 7px 16px; align-self: flex-start;
+    border-radius: var(--radius-md); border: 0.5px solid var(--border-hover);
+    background: var(--bg); color: var(--text-primary); cursor: pointer;
+    font-family: inherit; transition: background 0.12s;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .setup-fields button:hover { background: var(--bg-secondary); }
+
+  .tb-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 7px 0; border-bottom: 0.5px solid var(--border);
+  }
+  .tb-row:last-child { border-bottom: none; }
+  .tb-time { font-size: 12px; color: var(--text-tertiary); min-width: 108px; flex-shrink: 0; }
+  .tb-bar-wrap { flex: 1; height: 5px; background: var(--bg-secondary); border-radius: 99px; overflow: hidden; }
+  .tb-bar { height: 100%; border-radius: 99px; width: 0%; transition: width 0.7s ease; background: var(--border-hover); }
+  .tb-bar.active { background: var(--accent); }
+  .tb-bar.done { background: var(--border); }
+  .tb-label { font-size: 13px; color: var(--text-primary); flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .now-pill {
+    font-size: 11px; font-weight: 500; color: var(--accent-text);
+    background: var(--accent-bg); border-radius: 99px;
+    padding: 2px 9px; flex-shrink: 0; display: none;
+  }
+  .tb-status { font-size: 13px; color: var(--text-secondary); padding: 4px 0; }
+  .tb-status.err { color: #c0392b; }
+
+  /* Footer */
+  .footer { margin-top: 2rem; font-size: 12px; color: var(--text-tertiary); text-align: center; }
+</style>
+</head>
+<body>
+<div class="dash">
+
+  <!-- Clock -->
+  <div class="clock-row">
+    <span class="clock-time" id="clk">--:--</span>
+    <span class="clock-date" id="clk-date"></span>
+  </div>
+
+  <!-- Nav -->
+  <p class="section-label">Navigate</p>
+  <div class="nav-grid">
+
+    <div class="card">
+      <div class="card-header"><i class="ti ti-user card-icon" aria-hidden="true"></i><span class="card-title">Personal</span></div>
+      <div class="link-list">
+        <a href="https://app.notion.com/p/d5b95535b9a44608835f2fbfca2a12ab" target="_blank"><i class="ti ti-home" aria-hidden="true"></i>Personal hub</a>
+        <a href="https://app.notion.com/p/250da644717c80f281ded7ecb0b52f5b" target="_blank"><i class="ti ti-target" aria-hidden="true"></i>Personal goals</a>
+        <a href="https://app.notion.com/p/247da644717c80b481e3cf28f4ebd855" target="_blank"><i class="ti ti-heart" aria-hidden="true"></i>Health</a>
+        <a href="https://app.notion.com/p/aa3320716d1642ffa4225f42a8d3a32c" target="_blank"><i class="ti ti-coin" aria-hidden="true"></i>Finances</a>
+        <a href="https://app.notion.com/p/c1422ed0cde346cda190b6ba7a49636a" target="_blank"><i class="ti ti-paw" aria-hidden="true"></i>Pet management</a>
+        <a href="https://app.notion.com/p/1c5da644717c8047ba42e16fdcca7ad3" target="_blank"><i class="ti ti-building" aria-hidden="true"></i>Household</a>
+        <a href="https://app.notion.com/p/1ccda644717c80b28d0fe844b14984dc" target="_blank"><i class="ti ti-soup" aria-hidden="true"></i>Recipes</a>
+        <a href="https://app.notion.com/p/20dda644717c803a9159f2951819f969" target="_blank"><i class="ti ti-sparkles" aria-hidden="true"></i>Skincare</a>
+        <a href="https://app.notion.com/p/6e5b14b182ca4634b54401358cdebdfe" target="_blank"><i class="ti ti-moon" aria-hidden="true"></i>Witchy things</a>
+        <a href="https://app.notion.com/p/10cda644717c8040a2bee47a3a2e645d" target="_blank"><i class="ti ti-package" aria-hidden="true"></i>Inventories</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><i class="ti ti-briefcase card-icon" aria-hidden="true"></i><span class="card-title">Professional</span></div>
+      <div class="link-list">
+        <a href="https://app.notion.com/p/6e0f11c6a4944ea1aa519d8cc915fbca" target="_blank"><i class="ti ti-building-skyscraper" aria-hidden="true"></i>Professional hub</a>
+        <a href="https://app.notion.com/p/246da644717c804ba81ce7617bca8e8a" target="_blank"><i class="ti ti-target" aria-hidden="true"></i>Work goals</a>
+        <a href="https://app.notion.com/p/242da644717c8003bfe6e142fe24a56e" target="_blank"><i class="ti ti-trophy" aria-hidden="true"></i>Achievements</a>
+        <a href="https://app.notion.com/p/14fda644717c80249f06ee49ddd6cf75" target="_blank"><i class="ti ti-layout-list" aria-hidden="true"></i>Projects</a>
+        <a href="https://app.notion.com/p/d44460e1fcb84b8a9979ac15991c41d6" target="_blank"><i class="ti ti-plug" aria-hidden="true"></i>Side hustles</a>
+        <a href="https://app.notion.com/p/250da644717c80359d59d261e65ea126" target="_blank"><i class="ti ti-plane" aria-hidden="true"></i>Work travel</a>
+        <a href="https://app.notion.com/p/212da644717c80e6b052c41e7f58cfe3" target="_blank"><i class="ti ti-messages" aria-hidden="true"></i>Career coaching</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><i class="ti ti-palette card-icon" aria-hidden="true"></i><span class="card-title">Creative</span></div>
+      <div class="link-list">
+        <a href="https://app.notion.com/p/3c8586aba1e14249a6fc7c1e1702e680" target="_blank"><i class="ti ti-wand" aria-hidden="true"></i>Creative hub</a>
+        <a href="https://app.notion.com/p/24cda644717c80f799e5d171679f30ef" target="_blank"><i class="ti ti-bulb" aria-hidden="true"></i>Story ideas</a>
+        <a href="https://app.notion.com/p/257da644717c8056872fdcd7c73bd5bd" target="_blank"><i class="ti ti-books" aria-hidden="true"></i>Writing reference</a>
+      </div>
+
+      <div class="card-header"><i class="ti ti-device-gamepad-2 card-icon" aria-hidden="true"></i><span class="card-title">Gaming</span></div>
+      <div class="link-list">
+        <a href="https://app.notion.com/p/53e57a0cdb1f47e59641c2008f6deb05" target="_blank"><i class="ti ti-device-tv" aria-hidden="true"></i>Media hub</a>
+        <a href="https://app.notion.com/p/10fda644717c8013a3e1fcaa37061b45" target="_blank"><i class="ti ti-sword" aria-hidden="true"></i>FFXIV</a>
+        <a href="https://app.notion.com/p/ced7165eeddd43c289ffc0164205bd68" target="_blank"><i class="ti ti-ticket" aria-hidden="true"></i>Game codes</a>
+        <a href="https://app.notion.com/p/02c3caedccbb48aa8dfa31c11b7bb4af" target="_blank"><i class="ti ti-device-gamepad" aria-hidden="true"></i>Gaming</a>
+      </div>
+
+      <div class="card-header"><i class="ti ti-home-2 card-icon" aria-hidden="true"></i><span class="card-title">Home & order</span></div>
+      <div class="link-list">
+        <a href="https://app.notion.com/p/124da644717c800689dede47aecb47a1" target="_blank"><i class="ti ti-check" aria-hidden="true"></i>UFYH dashboard</a>
+        <a href="https://app.notion.com/p/13dda644717c8065abd7d428b5c640e2" target="_blank"><i class="ti ti-sparkles" aria-hidden="true"></i>Cleaning & organizing</a>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Timeblock -->
+  <p class="section-label">Today's timeblock</p>
+  <div class="tb-card">
+    <div class="setup-box" id="setup-box">
+      <p><i class="ti ti-calendar" aria-hidden="true" style="font-size:14px;vertical-align:-2px;margin-right:4px"></i>Connect your Google Calendar to pull in today's events. Your credentials stay in your browser and are never sent anywhere except Google.</p>
+      <div class="setup-fields">
+        <input id="inp-key" type="password" placeholder="Google Calendar API key" autocomplete="off" />
+        <input id="inp-cal" type="text" placeholder="Calendar ID  (e.g. you@gmail.com)" />
+        <button onclick="connectCal()">Connect <i class="ti ti-arrow-right" aria-hidden="true" style="font-size:13px;vertical-align:-1px"></i></button>
+      </div>
+    </div>
+    <div id="tb-rows">
+      <p class="tb-status">Enter your credentials above to load today's events.</p>
+    </div>
+  </div>
+
+  <p class="footer">Your credentials are stored only in this browser tab and sent directly to Google — nothing is logged or shared.</p>
+
+</div>
+
+<script>
+  let calEvents = [];
+
+  const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  function fmtClock(d) {
+    let h = d.getHours(), m = d.getMinutes();
+    const ap = h < 12 ? 'am' : 'pm';
+    h = h % 12 || 12;
+    return h + ':' + String(m).padStart(2, '0') + ' ' + ap;
+  }
+
+  function fmtShort(d) {
+    let h = d.getHours(), m = d.getMinutes();
+    const ap = h < 12 ? 'am' : 'pm';
+    h = h % 12 || 12;
+    return m === 0 ? h + ap : h + ':' + String(m).padStart(2, '0') + ap;
+  }
+
+  function tick() {
+    const now = new Date();
+    document.getElementById('clk').textContent = fmtClock(now);
+    document.getElementById('clk-date').textContent =
+      DAYS[now.getDay()] + ', ' + MONTHS[now.getMonth()] + ' ' + now.getDate();
+    updateBars(now);
+  }
+
+  function updateBars(now) {
+    if (!calEvents.length) return;
+    const ms = now.getTime();
+    calEvents.forEach((ev, i) => {
+      const bar = document.getElementById('bar-' + i);
+      const pill = document.getElementById('pill-' + i);
+      if (!bar) return;
+      const active = ms >= ev.start && ms < ev.end;
+      const done = ms >= ev.end;
+      const pct = done ? 100 : active ? Math.round((ms - ev.start) / (ev.end - ev.start) * 100) : 0;
+      bar.style.width = pct + '%';
+      bar.className = 'tb-bar' + (active ? ' active' : done ? ' done' : '');
+      pill.style.display = active ? 'inline' : 'none';
+    });
+  }
+
+  async function connectCal() {
+    const key = document.getElementById('inp-key').value.trim();
+    const cal = document.getElementById('inp-cal').value.trim();
+    if (!key || !cal) return;
+
+    document.getElementById('tb-rows').innerHTML = '<p class="tb-status">Loading events…</p>';
+
+    const now = new Date();
+    const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+    const dayEnd   = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).toISOString();
+    const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(cal)}/events`
+      + `?key=${encodeURIComponent(key)}&timeMin=${dayStart}&timeMax=${dayEnd}`
+      + `&singleEvents=true&orderBy=startTime&maxResults=50`;
+
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
+
+      if (data.error) {
+        document.getElementById('tb-rows').innerHTML =
+          `<p class="tb-status err"><i class="ti ti-alert-circle" aria-hidden="true" style="font-size:14px;vertical-align:-2px;margin-right:5px"></i>${data.error.message}</p>`;
+        return;
+      }
+
+      const timed = (data.items || []).filter(e => e.start && e.start.dateTime);
+      if (!timed.length) {
+        document.getElementById('tb-rows').innerHTML =
+          '<p class="tb-status">No timed events found for today.</p>';
+        return;
+      }
+
+      calEvents = timed.map(e => ({
+        label: e.summary || '(no title)',
+        start: new Date(e.start.dateTime).getTime(),
+        end:   new Date(e.end.dateTime).getTime(),
+      }));
+
+      document.getElementById('setup-box').style.display = 'none';
+      buildRows();
+      updateBars(new Date());
+
+    } catch (err) {
+      document.getElementById('tb-rows').innerHTML =
+        `<p class="tb-status err"><i class="ti ti-alert-circle" aria-hidden="true" style="font-size:14px;vertical-align:-2px;margin-right:5px"></i>Could not reach Google. Check your API key and calendar ID.</p>`;
+    }
+  }
+
+  function buildRows() {
+    const container = document.getElementById('tb-rows');
+    container.innerHTML = '';
+    calEvents.forEach((ev, i) => {
+      const s = new Date(ev.start), e = new Date(ev.end);
+      const row = document.createElement('div');
+      row.className = 'tb-row';
+      row.innerHTML = `
+        <span class="tb-time">${fmtShort(s)} – ${fmtShort(e)}</span>
+        <div class="tb-bar-wrap"><div class="tb-bar" id="bar-${i}"></div></div>
+        <span class="tb-label">${ev.label}</span>
+        <span class="now-pill" id="pill-${i}">now</span>
+      `;
+      container.appendChild(row);
+    });
+  }
+
+  tick();
+  setInterval(tick, 1000);
+</script>
+</body>
+</html>
